@@ -1,52 +1,87 @@
-Before submitting this file, make sure that there are no more TODO
-placeholders remaining in the file (and remove this comment too).
-
 Perfect Numbers
 ---------------
 
-Before submitting this file, make sure that there are no more TODO
-placeholders remaining in the file (and remove this comment too).
-
 Q1. Roughly how long did it take your computer to do the search? How many perfect numbers were found and what were they?
-A1. TODO
+A1. 2.25 seconds; found perfect numbers 6,28,496,8128
 
 Q2. Record the timing results for `findPerfects` that you observed into a table.
-A2. TODO
+A2. findPerfects(32500)  completed in 1.268 secs
+    findPerfects(65000)  completed in 4.421 secs
+    findPerfects(130000) completed in 16.373 secs
+    findPerfects(260000) completed in 64.141 secs
 
 Q3. Does it take the same amount of work to compute `isPerfect` on the number 10 as it does on the number 1000? Why or why not? Does it take the same amount of work for `findPerfects` to search the range of numbers from 1-1000 as it does to search the numbers from 1000-2000? Why or why not?
-A3. TODO
+A3. isPerfect uses divisorSum, which takes n loop iterations to complete. Therefore isPerfect will take around 100 times as much work to compute n = 1000 as it does for n = 10.
+This discrepancy could be even larger considering that 1000 has larger divisors, so each loop iteration in divisorSum could take longer.
+Since isPerfect takes longer for larger n, findPerfects will take significantly longer when searching from 1000-2000 than when searching from 1-1000.
 
 Q4. Extrapolate from the data you gathered and make a prediction: how long will it take `findPerfects` to reach the fifth perfect number?
-A4. TODO
+A4. For findPerfects(n), time t is related quadratically to n through some constant factor c. Therefore:
+t = c * (n ^ 2)
+t2 / t1 = (n2 ^ 2) / (n1 ^ 2) 
+
+To find t for the fifth perfect number, we can using the existing case n1 = 260000 and t1 = 64.141, and the perfect number n2 = 33550336
+t / 64.141 = (33550336 ^ 2) / (260000 ^ 2)
+t = 64.141 * (33550336 ^ 2) / (260000 ^ 2) = 1068028.34 seconds or roughly 12 days
 
 Q5. Do any of the tests still pass even with this broken function? Why or why not?
-A5. TODO
+A5. The tests expecting 12, 98765, -12, and -36 not to be perfect passed. This is because:
+-Adding an initial value of total=1 didn't increase the sum of divisors in n=12 or n=98765 to n. 
+-Changing total to 1 did not change the fact that the loop in divisorSum does not execute for negative numbers since a negative n is still always less than the counter divisor=1.
 
 Q6. Describe the testing strategy you used for your test cases to confirm `smarterSum` is working correctly.
-A6. TODO
+A6. I included separate categories of cases with rationale as follows:
+-Tested negative numbers because these as a whole should return 0.
+-Tested 0 because this could cause divide by zero errors in the modulus; should return 0.
+-Tested 25 because this has a square root, 5, as a valid divisor. I made sure the algorithm doesn't double count this root.
+-Tested 28 because this is a perfect number and I wanted proof that a perfect number would work.
+-Tested very large numbers to ensure there are no problems with going above max int, stack overflow, etc. As expected there were no issues in this regard.
 
 Q7. Record your timing results for `findPerfectsSmarter` into a table.
-A7. TODO
+A7. findPerfectsSmarter( 1312500) completed in  3.827 secs
+    findPerfectsSmarter( 2625000) completed in  8.857 secs
+    findPerfectsSmarter( 5250000) completed in 22.301 secs
+    findPerfectsSmarter(10500000) completed in 58.719 secs
 
 Q8. Make a prediction: how long will `findPerfectsSmarter` take to reach the fifth perfect number?
-A8. TODO
+A8. For findPerfectsSmarter(n), time t is proportional to n ^ (3 / 2) through some constant factor c. Therefore:
+t = c * (n ^ (3 / 2))
+t2 / t1 = (n2 ^ (3 / 2)) / (n1 ^ (3 / 2)) 
+
+To find t for the fifth perfect number, we can using the existing case n1 = 10500000 and t1 = 58.719, and the perfect number n2 = 33550336
+t / 58.719 = (33550336 ^ (3 / 2)) / 10500000 ^ (3 / 2))
+t = 58.719 * (33550336 ^ (3 / 2)) / 10500000 ^ (3 / 2)) = 1068028.34 seconds or roughly 12 days
 
 Q9. Explain how you chose your specific test cases and why they lead you to be confident `findNthPerfectEuclid` is working correctly.
-A9. TODO
+A9. I chose to test the first 5 perfect numbers. The 6th perfect number is larger than LONG_MAX, as I discovered while testing.
+Certainly one could solve that issue, perhaps using a different c++ data type or by storing a number as multiple longs; In any case
+I considered that outside the scope of this warm-up question. I also tested the case of a negative input which, being nonsense, should not output
+a perfect number. I had already verified that isPerfectSmarter works so I expected it to return true for valid calls of
+findNthPerfectEuclid. To double check, I also printed the value returned by findNthPerfectEuclid(n) to the console for ease of debugging
+and to check that the correct perfect number was being returned.
 
 Soundex
 -------
 
 Q10. What is the Soundex code for "Angelou"? What is the code for your own surname?
-A10. TODO
+A10. soundex("Angelou") = A524
+soundex("Larlarb") = L646
 
 Q11. Before writing any code, brainstorm your plan of attack and sketch how you might decompose the work into smaller tasks. Briefly describe your decomposition strategy.
-A11. TODO
+A11. First of all, I need the soundex function, which converts an input string into a soundex code. This will to do the following actions via helper functions and/or strlib functions:
+-Remove non-letter characters.
+-Convert each letter to a digit. This will involve iterating through each letter, and looking up the digit in some conversion table (probably in Vector form).
+-Combine adjacent digits of the same value so there are no repetitions. This involves iterating through a set of digits and only taking one digit per every grouping of like digits
+-Replace the first digit with the uppercase first letter of the name.
+-Remove zeroes from the string.
+-Fill in too-short strings with zeroes at the end, and truncate too-long strings.
 
 Q12. Think about one or more examples of a class of names that the Soundex system might not work well for. Explain what this class of names is and why the system might incorrectly group them or mis-categorize one of the names.
-A12. TODO
-
+A12. In many languages there are names which translate to English with unspoken or non-phonetic syllables. For example in spanish, two ls make the same sound as a y does
+in english. This would presumably lead a soundex codes for the name Villela which implies a pronunciation like "vilela." If one were trying to analyze groups of people as
+related by surname, these phonetic inconsistencies would likely be an issue given the prevalence of names from languages other than English in the U.S.
 Q13. Suppose you are a software engineer working for the U.S. government. You have been tasked with implementing a system that collects names as part of the Census survey and analyzes these names using a phonetic algorithm. Your boss suggests using Soundex and notes that the algorithm is only expected to work for ASCII-encoded strings, since supporting Unicode would require extra work and time. What would your response be and why? What representational harms might result from building a system that exclusively uses Soundex and/or ASCII?
-A13. TODO
-
-
+A13. I would warn my boss that, for the aforementioned reasons, significant miscategorizations could result from using ASCII and soundex.
+This could result in an undercounting of minority groups in the measure of total different names given the prevalance of names not written in soundex-equivalent phonetics in minority groups.
+To promote representational equality, I would point to the significance of written languages other than English in conveying the phonetic characteristics of those spoken languages. I would suggest using unicode as
+an alternative to ASCII for name collection, or at a minimum having a modified soundex algorithm for names in different languages so as to preserve acurracy of phonetic representation.

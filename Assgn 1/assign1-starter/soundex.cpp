@@ -14,19 +14,15 @@
 #include "vector.h"
 using namespace std;
 
-/* This function is intended to return a string which
- * contains only the letter characters from the original
- * (all non-letter characters are removed)
- *
- * WARNING: The provided code is buggy!
- *
- * Use unit tests to identify which inputs to this function
- * are incorrectly handled. Then, remove this comment and
- * replace it with a description of the bug you fixed.
+/* This function returns a string which
+ * contains only the letter characters from the original. Formerly, there
+ * was a bug where the first character would remain included even if it was
+ * not a letter. However, this has been fixed to remove all non-letter characters
+ * regardless of position within the string.
  */
 string removeNonLetters(string s) {
-    string result = charToString(s[0]);
-    for (int i = 1; i < s.length(); i++) {
+    string result = "";
+    for (int i = 0; i < s.length(); i++) {
         if (isalpha(s[i])) {
             result += s[i];
         }
@@ -34,18 +30,80 @@ string removeNonLetters(string s) {
     return result;
 }
 
+/*
+ * returns the result of converting every character in s into a digit according to the soundex table
+ */
+string getDigits(string s) {
+    //soundex replaces a given character with the index of the string in this vector containing it
+    const Vector<string> conversion = {"AEIOUHWY","BFPV","CGJKQSXZ","DT","L","MN","R"};
+    string inputName = toUpperCase(s);
+    string digits = "";
+    for(char currentChar : inputName){
+        for(int i = 0; i < conversion.size(); i++) {
+            for(char key : conversion[i]) {
+                if(currentChar == key) {
+                    digits += integerToString(i);
+                }
+            }
+        }
+    }
+    return digits;
+}
 
-/* TODO: Replace this comment with a descriptive function
- * header comment.
+/*
+ * returns the result of removing any repeated digits from a string of digits; i.e. 0033335555 would become 035
+ */
+string coalesce(string s) {
+    string coalesced = charToString(s[0]);
+    char currentChar = s[0];
+    for(int i = 1; i < s.length(); i++) {
+        if(s[i] != currentChar) {
+            coalesced += charToString(s[i]);
+            currentChar = s[i];
+        }
+    }
+    return coalesced;
+}
+
+/*
+ * Written for soundex algorithm. If s has length less than 4, the function adds 0s to the end. If s has length greater than 4, the function truncates ending digits.
+ */
+string lengthFour(string s) {
+    string fourLong = s;
+    if(fourLong.length() < 4) {
+        while(fourLong.length() < 4) {
+            fourLong += "0";
+        }
+    } else if(fourLong.length() > 4) {
+        fourLong = fourLong.substr(0,4);
+    }
+    return fourLong;
+}
+
+/*
+ * Implements the historically-significant Soundex algorithm on the string s:
+ * -discards non-letter characters
+ * -encodes each letter as a digit
+ * -combines repeated digits into a single digit
+ * -replaces the first digit with the first letter of the name, uppercase
+ * -removes all zeroes from the code
+ * -changes the code to length four by concatenating zeroes if it is too short, or by truncating it if too long
+ * The resultant code will be returned as something like C600 or L646.
  */
 string soundex(string s) {
-    /* TODO: Fill in this function. */
-    return "";
+    string soundexed = removeNonLetters(s);
+    soundexed = getDigits(soundexed);
+    soundexed = coalesce(soundexed);
+    soundexed[0] = toupper(s[0]);
+    soundexed = stringReplace(soundexed,"0","");
+    soundexed = lengthFour(soundexed);
+    return soundexed;
 }
 
 
-/* TODO: Replace this comment with a descriptive function
- * header comment.
+/*
+ * Reads the file at filepath into a vector of names. Converts that vector into a vector of soundex codes. Asks the user to enter a name, and displays all names
+ * in the database with a matching soundex code. Repeats this process until the user asks to stop.
  */
 void soundexSearch(string filepath) {
     // The proivded code opens the file with the given name
@@ -62,12 +120,53 @@ void soundexSearch(string filepath) {
     // The names in the database are now stored in the provided
     // vector named databaseNames
 
+    Vector<string> soundexNames;
+    for(string name : databaseNames) {
+        soundexNames.add(soundex(name));
+    }
+
+    while(true) {
+        string name = soundex(getLine("Enter a name: "));
+        Vector<string> candidates;
+        for(int i = 0; i < soundexNames.size(); i++) {
+            if(soundexNames[i] == name) {
+                candidates.add(databaseNames[i]);
+            }
+        }
+        candidates.sort();
+        cout << "the following names are potential phonetic matches for the entered name: " << candidates.toString() << endl;
+        string continuing = getLine("Would you like to continue soundex searching? type 'no' to end search, otherwise search will continue");
+        if(continuing == "no") {break;}
+    }
+
     /* TODO: Fill in the remainder of this function. */
 }
 
+STUDENT_TEST("DOES IT WORK? (yes)") {
+    soundexSearch("res/surnames.txt");
+}
 
 /* * * * * * Test Cases * * * * * */
+STUDENT_TEST("soundex test cases") {
+    EXPECT_EQUAL(soundex("larlarb"),"L646");
+}
 
+STUDENT_TEST("test changing length of string to four") {
+    EXPECT_EQUAL(lengthFour("1987345"),"1987");
+    EXPECT_EQUAL(lengthFour("3"),"3000");
+}
+
+STUDENT_TEST("test conversion of a string of letters to digits") {
+    EXPECT_EQUAL(getDigits("curie"),"20600");
+    EXPECT_EQUAL(getDigits("Larlarb"),"4064061");
+    EXPECT_EQUAL(getDigits("Angelou"),"0520400");
+}
+
+STUDENT_TEST("test coalescence of string of digits into non-repetitive string") {
+    EXPECT_EQUAL(coalesce("20600"),"2060");
+    EXPECT_EQUAL(coalesce("4064061"),"4064061");
+    EXPECT_EQUAL(coalesce("10033335555010111"),"10350101");
+}
 
 PROVIDED_TEST("Test removing puntuation, digits, and spaces") {
     string s = "O'Hara";
@@ -79,6 +178,9 @@ PROVIDED_TEST("Test removing puntuation, digits, and spaces") {
     s = "tl dr";
     result = removeNonLetters(s);
     EXPECT_EQUAL(result, "tldr");
+    s = "/this used to fail due to issue removing first char";
+    result = removeNonLetters(s);
+    EXPECT_EQUAL(result, "thisusedtofailduetoissueremovingfirstchar");
 }
 
 
@@ -132,7 +234,3 @@ PROVIDED_TEST("Ashcraft is not a special case") {
     // We do not make this special case, just treat same as codes split by vowel
     EXPECT_EQUAL(soundex("Ashcraft"), "A226");
 }
-
-// TODO: add your test cases here
-
-
