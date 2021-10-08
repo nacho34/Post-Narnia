@@ -16,24 +16,34 @@
 #include "testing/SimpleTest.h"
 using namespace std;
 
+void addMoveIfCorridor(Grid<bool>& maze, Set<GridLocation>& validMoves, GridLocation move);
 
 /* TODO: Replace this comment with a descriptive function
  * header comment.
  */
 Set<GridLocation> generateValidMoves(Grid<bool>& maze, GridLocation cur) {
-    Set<GridLocation> neighbors;
-    Vector<int> deltas {1,-1};
-    //record the locations above, below, and to the left and right of cur, if each location is in-bounds and has a corridor
-    for(int deltaRow : deltas) {
-        for(int deltaCol : deltas) {
-            int row = cur.row + deltaRow;
-            int col = cur.col + deltaCol;
-            if(maze.inBounds(row,col) && maze[row][col]) {
-                neighbors.add(GridLocation(row,col));
-            }
-        }
+    Set<GridLocation> validMoves;
+    //this is the set of locations above, below, to the left and to the right of cur
+    Set<GridLocation> possibleMoves {
+        GridLocation(cur.row + 1, cur.col),
+        GridLocation(cur.row - 1, cur.col),
+        GridLocation(cur.row, cur.col + 1),
+        GridLocation(cur.row, cur.col - 1)
+    };
+    for(GridLocation possibleMove : possibleMoves) {
+        addMoveIfCorridor(maze, validMoves, possibleMove);
     }
-    return neighbors;
+    return validMoves;
+}
+
+/*
+ * Checks whether move is in bounds of maze, and whether it is a corridor rather than a wall. If so,
+ * adds move to validMoves.
+ */
+void addMoveIfCorridor(Grid<bool>& maze, Set<GridLocation>& validMoves, GridLocation move) {
+    if(maze.inBounds(move) && maze[move]) {
+        validMoves.add(move);
+    }
 }
 
 /* TODO: Replace this comment with a descriptive function
