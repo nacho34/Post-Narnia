@@ -19,7 +19,18 @@ using namespace std;
 // behavior of the function and how you implemented this behavior
 string cleanToken(string s)
 {
-    return s;
+    string cleaned;
+    for(int i = 0; i < s.length(); i++) {
+        if(isalpha(s[i])) {
+            cleaned = s.substr(i,s.length());
+        }
+    }
+    for(int i = s.length(); i > 0; i--) {
+        if(isalpha(s[i])) {
+            cleaned = s.substr(i,s.length());
+        }
+    }
+    return cleaned;
 }
 
 // TODO: Add a function header comment here to explain the
