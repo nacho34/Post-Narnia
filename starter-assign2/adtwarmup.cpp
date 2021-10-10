@@ -20,14 +20,12 @@ void reverse(Queue<int>& q) {
     }
 }
 
-/* This function is intended to modify a queue of characters to duplicate
+/* This function modifies a queue of characters to duplicate
  * any negative numbers.
- *
- * WARNING: the given code is buggy. See exercise writeup for more
- * information on how to test and diagnose.
  */
 void duplicateNegatives(Queue<int>& q) {
-    for (int i = 0; i < q.size(); i++) {
+    int initQueueSize = q.size();
+    for (int i = 0; i < initQueueSize; i++) {
         int val = q.dequeue();
         q.enqueue(val);
         if (val < 0) {
@@ -36,12 +34,10 @@ void duplicateNegatives(Queue<int>& q) {
     }
 }
 
-// This function is intended to return the sum of all values in
-// the stack
-// WARNING: the given code is buggy. See exercise writeup for more
-// information on how to test and diagnose.
+// This function returns the sum of all values in
+// the stack.
 int sumStack(Stack<int> s) {
-    int total = s.pop();
+    int total = 0;
     while (!s.isEmpty()) {
         total += s.pop();
     }

@@ -7,21 +7,42 @@ Q1. The display of the Stack in the debugger uses the labels `top` and `bottom` 
 A1. TODO
 
 Q2. For which type of inputs does the function go into an infinite loop?
-A2. TODO
+A2. When every element in q is negative, every iteration of the for loop will duplicate a number in q, which will increase the size of q by 1.
+This means the condition i < q.size() will always be true, so the loop will run infinitely.
 
 Q3. Show your edited code for duplicateNegatives that fixes the problem with the infinite loop
-A3. TODO
+A3. I record the initial size of q to ensure every element only has the oppurtunity to be duplicated once:
+
+void duplicateNegatives(Queue<int>& q) {
+    int initQueueSize = q.size();
+    for (int i = 0; i < initQueueSize; i++) {
+        int val = q.dequeue();
+        q.enqueue(val);
+        if (val < 0) {
+            q.enqueue(val);   // double up on negative numbers
+        }
+    }
+}
 
 Q4. What is the better fix to `sumStack` that corrects the bug?
-A4. TODO
+A4. I set total to 0 initially. That way, if s is empty, the function will make no attempt to pop elements from it:
+
+int sumStack(Stack<int> s) {
+    int total = 0;
+    while (!s.isEmpty()) {
+        total += s.pop();
+    }
+    return total;
+}
 
 Maze
 -------
 Q5. In lecture, Cynthia noted the convention is to pass large data structures by reference for reasons of efficiency. Why then do you think `validatePath` passes `path` by value instead of by reference?
-A5. TODO
+A5. This is so that we can pop items from path within the function without modifying the instance which was passed in.
 
 Q6. After you have written your tests, describe your testing strategy to determine that your `validatePath` works as intended.
-A6. TODO
+A6. I confirmed that validatePath throws an error on cases of paths travelling outside the maze, the case of the starting location being repeated, and the case where the
+maze entrance is not connected to the next location. These tests were helpful in confirming my approach was correct, since some of the other approaches I tried failed these tests.
 
 Search Engine
 -------------
