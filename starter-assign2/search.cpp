@@ -1,7 +1,6 @@
-// TODO: remove and replace this file header comment
-// This is a .cpp file you will edit and turn in.
-// Remove starter comments and add your own
-// comments on each function and on complex code sections.
+// Contains code for a simple search engine using ADTs. Reads pages from a document and builds an index of urls for search terms. Supports
+// using modifier characters such as '+' or '-' to improve search accuracy.
+
 #include <iostream>
 #include <fstream>
 #include "error.h"
@@ -11,57 +10,178 @@
 #include "set.h"
 #include "strlib.h"
 #include "vector.h"
+#include "queue.h"
 #include "testing/SimpleTest.h"
+#include "simpio.h"
 using namespace std;
 
 
-// TODO: Add a function header comment here to explain the
-// behavior of the function and how you implemented this behavior
+/**
+ * Returns a cleaned version of s. The returned string has all leading and ending punctuation removed from s. Punctuation is defined by ispunct().
+ * The returned string is lower-case. The returned string must have at least one letter, otherwise an empty string is returned.
+ */
 string cleanToken(string s)
 {
-    string cleaned;
+    //remove punctuation from front
     for(int i = 0; i < s.length(); i++) {
-        if(isalpha(s[i])) {
-            cleaned = s.substr(i,s.length());
+        if(!ispunct(s[i])) {
+            s = s.substr(i,s.length());
+            break;
         }
     }
-    for(int i = s.length(); i > 0; i--) {
-        if(isalpha(s[i])) {
-            cleaned = s.substr(i,s.length());
+    //remove punctuation from end
+    for(int i = s.length()-1; i > 0; i--) {
+        if(!ispunct(s[i])) {
+            s = s.substr(0,i+1);
+            break;
         }
     }
-    return cleaned;
+    //check that the string contains letters
+    for(char c : s) {
+        if(isalpha(c)) {
+            return toLowerCase(s);
+        }
+    }
+    return "";
 }
 
-// TODO: Add a function header comment here to explain the
-// behavior of the function and how you implemented this behavior
+/**
+ * Takes a string of text and splits it into smaller tokens by spaces. Cleans every token according to cleanToken, and returns a set of unique tokens.
+ * Keep in mind that different raw tokens could be identical once clean; these would only be counted once in the returned set.
+ */
 Set<string> gatherTokens(string text)
 {
     Set<string> tokens;
+    Vector<string> rawStrings = stringSplit(text, " ");
+    for(string raw : rawStrings) {
+        string cleaned = cleanToken(raw);
+        if(cleaned != "") { //cleanToken() returns an empty string when raw contains no letters
+            tokens += cleaned;
+        }
+    }
     return tokens;
 }
 
-// TODO: Add a function header comment here to explain the
-// behavior of the function and how you implemented this behavior
+/**
+ * Builds an inverted index of webpages in dbfile. For each webpage, splits the text into tokens using gatherTokens(). For each token, records the corresponding
+ * url into the Map index under index[token].
+ */
 int buildIndex(string dbfile, Map<string, Set<string>>& index)
 {
-    return 0;
+    ifstream in;
+    if (!openFile(in, dbfile))
+        error("Cannot open file named " + dbfile);
+    Vector<string> lines;
+    readEntireFile(in, lines);
+
+    //iterating over pairs of lines; each url line is followed by the body text line
+    for(int line = 0; line < lines.size(); line += 2) {
+        string url = lines[line];
+        string webPage = lines[line+1];
+        Set<string> tokens = gatherTokens(webPage);
+        for(string token : tokens) {
+            index[token] += url;
+        }
+    }
+    return lines.size()/2;
 }
 
-// TODO: Add a function header comment here to explain the
-// behavior of the function and how you implemented this behavior
+/**
+ * Removes and returns the modifier (either '+' or '-') from the front of a query term, if that term has a valid modifier.
+ * If the term has no valid modifier returns the space character ' '.
+ */
+char processModifier(string& query) {
+    if(query[0] == '+' || query[0] == '-') {
+        char modifier = query[0];
+        query = query.substr(1,query.length());
+        return modifier;
+    }
+    return ' ';
+}
+
+/**
+ * Represents a single term of a query, including the modifier and the cleaned term text. During construction, removes and stores the modifier for the term using processModifier.
+ * Note that terms with no modifier will store the space character ' ' as the modifier.
+ */
+class queryTerm {
+    char m = ' ';
+    string q = "";
+    public: queryTerm(string query) {
+        m = processModifier(query);
+        q = cleanToken(query);
+    }
+    char modifier() {
+        return m;
+    }
+    string text() {
+        return q;
+    }
+};
+
+/**
+ * Processes a raw query string into a Queue of term objects, splitting by the ' ' character. Each term contains a modifier and the cleaned term string (see queryTerm).
+ */
+Queue<queryTerm> processQuery(string rawQuery) {
+    Queue<queryTerm> terms;
+    Vector<string> rawTerms = stringSplit(rawQuery, " ");
+    for(string rawTerm : rawTerms) {
+        terms.enqueue(queryTerm(rawTerm));
+    }
+    return terms;
+}
+
+/**
+ * Searches for all urls matching a given query. Terms in the query process a leading modifier character and clean the rest of the string using cleanToken()
+ * Terms are then adjudicated from left to right, modifying the returned set of urls as follows:
+ * - A term with no leading modifier will add all matching urls in index that are not already included in the set
+ * - A term beginning with '+' will subtract all urls not matching the search term from the set
+ * - A term beginning with '-' will subtract all matching urls that are included in the set
+ */
 Set<string> findQueryMatches(Map<string, Set<string>>& index, string query)
 {
     Set<string> result;
-    // TODO: your code here
+    Queue<queryTerm> terms = processQuery(query);
+    while(!terms.isEmpty()) {
+        queryTerm term = terms.dequeue();
+        Set<string> matches = index[term.text()];
+        switch(term.modifier()) {
+            //if the term had no valid modifier, it stores ' ' as its modifier
+            case ' ':
+                result.unionWith(matches);
+                break;
+            case '+':
+                result.intersect(matches);
+                break;
+            case '-':
+                result.difference(matches);
+                break;
+        }
+    }
     return result;
 }
 
-// TODO: Add a function header comment here to explain the
-// behavior of the function and how you implemented this behavior
+/**
+ * Reads a file containing alternating urls and associated body text. Builds an index which looks up all urls containing a given word. Words are processed
+ * in lowercase form without leading or ending punctuation (see cleanToken()). Allows a user to enter a search query containing multiple tokens:
+ * -A token starting with a '+' restricts the current search pool to associated urls.
+ * -A token starting with a '-' removes all associated urls from the search pool.
+ * -A token starting with neither of the aformentioned characters expands the search pool by including all associated urls.
+ */
 void searchEngine(string dbfile)
 {
-    // TODO: your code here
+    cout << "Stand by while building index..." << endl;
+    Map<string, Set<string>> index;
+    int numFiles = buildIndex(dbfile, index);
+    cout << "Indexed " << numFiles << " pages containing " << index.size() << " unique terms" << endl;
+    while(true) {
+        string query = getLine("Enter query sentence (RETURN/ENTER to quit): ");
+        if(query == "") {
+            break;
+        }
+        Set<string> matches = findQueryMatches(index, query);
+        cout << "Found " << matches.size() << " matching pages" << endl;
+        cout << matches.toString() << "\n" << endl;
+    }
 }
 
 /* * * * * * Test Cases * * * * * */
@@ -128,5 +248,11 @@ PROVIDED_TEST("findQueryMatches from tiny.txt, compound queries") {
     EXPECT_EQUAL(matchesRedWithoutFish.size(), 1);
 }
 
-
-// TODO: add your test cases here
+STUDENT_TEST("findQueryMatches from tiny.txt, more compound queries") {
+    Map<string, Set<string>> index;
+    buildIndex("res/tiny.txt", index);
+    Set<string> matchesFishAndEatOrGreen = findQueryMatches(index, "Fish +,,eat././ ///grEEn*");
+    EXPECT(matchesFishAndEatOrGreen.contains("www.bigbadwolf.com"));
+    EXPECT(matchesFishAndEatOrGreen.contains("www.rainbow.org"));
+    EXPECT_EQUAL(matchesFishAndEatOrGreen.size(), 2);
+}

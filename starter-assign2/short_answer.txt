@@ -4,7 +4,7 @@ placeholders remaining in the file (and remove this comment too).
 Warmup
 ------
 Q1. The display of the Stack in the debugger uses the labels `top` and `bottom` to mark the two ends of the stack. How are the contents labeled when the Stack contains only one element?
-A1. TODO
+A1. top/bottom
 
 Q2. For which type of inputs does the function go into an infinite loop?
 A2. When every element in q is negative, every iteration of the for loop will duplicate a number in q, which will increase the size of q by 1.
@@ -47,15 +47,34 @@ maze entrance is not connected to the next location. These tests were helpful in
 Search Engine
 -------------
 Q7. Sketch the contents of the inverted index built from the `res/tiny.txt` database file.
-A7. TODO
+A7.
+{   "5lb_m&ms":{"www.shoppinglist.com"},
+    "blue":{"www.dr.seuss.net", "www.rainbow.org"},
+    "bread":{"www.shoppinglist.com"}, "eat":{"www.bigbadwolf.com"},
+    "fish":{"www.bigbadwolf.com", "www.dr.seuss.net", "www.shoppinglist.com"},
+    "green":{"www.rainbow.org"},
+    "i":{"www.bigbadwolf.com"},
+    "milk":{"www.shoppinglist.com"},
+    "one":{"www.dr.seuss.net"},
+    "red":{"www.dr.seuss.net", "www.rainbow.org"},
+    "two":{"www.dr.seuss.net"}  }
 
 Beyond Algorithmic Analysis
 ---------------------------
 Q8. In a short paragraph, describe a real or plausible scenario not previously presented in lecture in which using techniques like Big-O or Asymptotic Analysis to improve the performance of an algorithm might benefit the environment. Include your thoughts on how a software engineer working on this piece of code might identify such potential benefits and take them into consideration when designing the code.
-A8. TODO
+A8. I know that in language processing models, state of the art computers with lighting fast GPUs can spend days or even weeks optimizing for jobs like translation or data summarization.
+The most important environmental considerations when undertaking such an operation are how much energy will it use, what kind of energy, and whether a strain on the power grid cause nearby 
+energy systems to kick into backup fossil fuel reserves. There is also the argument for AI that models should be as reusable as possible so that huge, environmentally-dentrimental training 
+operations will only need to take place a few times, and later models, even for entirely different languages, can simply be interpolations of these original few.
 
 Q9. According to the contract that IBM struck with the state of Indiana, the criteria for optimization were improving efficiency of the overall welfare system and reducing fraud. Criteria for reducing wait times and wrongful denials were not included.  However, wrongfully denying benefits has a huge negative  impact on the citizens who rely on the system.  If criteria like minimizing wrongful denials were not included in the contract, should engineers have included them in their optimization algorithm?  Why or why not?
-A9. TODO
+A9. Yes, the engineers should have included these criteria since they are social goods and software engineers have an obligation to be dilligent in doing service for the communities that they impact.
+Just like mechanical and civil engineers need to respect property rights and safety standards when designing structures, software engineers need to protect social institutions when designing systems, in order to uphold a fair process.
 
-Q10. Imagine that after completing CS106B you are hired at IBM as an engineer working on this system. How might you have approached designing and setting the goals of this system?  How might you apply algorithmic analysis tools to build a system that achieved  the desired goals? Could you do so in a way that avoids the severe negative impacts on users of the system that are outlined in the case study?
-A10. TODO
+Q10. Imagine that after completing CS106B you are hired at IBM as an engineer working on this system. How might you have approached designing and setting the goals of this system?  How might you apply algorithmic analysis tools to build a system that achieved the desired goals? Could you do so in a way that avoids the severe negative impacts on users of the system that are outlined in the case study?
+A10. I would be sure to include a satisfactory customer experience, including fair treatment of citizens, in my design goals. These metrics could certainly be evaluated via small-scale or theoretical
+trial runs and data collection regarding how many people of certain demographics were recieveing aid prior to and after the introduction of the new system. Not knowing the specifics of the problem, I can't
+be sure of any solution. However, I can observe that the problem of document collection and verification is probably automatable and at a minimum could be streamlined via electronic documents (which may
+or may not have existed to the same degree in 2008). If the technology to process documents wasn't developed at the time then I suppose the issue is probably more with the logistics of document processing
+at the center and perhaps with the digital systems used for imputting data at the document center. In any case, the use of metrics for fairness and expediency would be a good way to ensure the issues were
+worked out before implementing the system.
